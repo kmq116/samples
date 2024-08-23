@@ -79,7 +79,26 @@ async function getAudioDevices() {
   ).join('');
 }
 
+// 在 worker 中
+async function loadBackgroundMusic(url) {
+  const response = await fetch(url);
+  const arrayBuffer = await response.arrayBuffer();
+  const audioContext = new AudioContext();
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
+  // 将 AudioBuffer 转换为可传输的格式
+  const channelData = [];
+  for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+    channelData.push(audioBuffer.getChannelData(i));
+  }
+
+  // 发送音频数据到 Worker
+  worker.postMessage({
+    command: 'decodeAudio',
+    sampleRate: audioBuffer.sampleRate,
+    channelData: channelData
+  }, channelData.map(channel => channel.buffer));
+}
 async function start() {
   startButton.disabled = true;
   try {
@@ -100,6 +119,8 @@ async function start() {
     const sink = generator.writable;
     worker = new Worker('js/worker.js');
     worker.postMessage({ source: source, sink: sink }, [source, sink]);
+    loadBackgroundMusic('http://127.0.0.1:8082/src/content/insertable-streams/audio-processing/test.mp3');
+
 
     processedStream = new MediaStream();
     processedStream.addTrack(generator);

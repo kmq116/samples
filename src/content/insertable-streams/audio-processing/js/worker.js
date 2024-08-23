@@ -26,8 +26,8 @@ function mixAudioWithBackgroundMusic() {
       const samples = buffer.subarray(offset, offset + data.numberOfFrames);
       data.copyTo(samples, { planeIndex: c, format });
       // 优化：预先计算混合比例
-      const micGain = 0.7;
-      const musicGain = 0.3;
+      const micGain = 0.8;
+      const musicGain = 0.2;
       // 混合背景音乐
       if (backgroundMusic) {
         const musicChannel = backgroundMusic.channelData[c % backgroundMusic.channelData.length];
